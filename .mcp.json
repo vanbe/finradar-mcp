@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "finradar": {
+      "command": "uvx",
+      "args": ["--from", ".", "finradar-mcp"]
+    }
+  }
+}

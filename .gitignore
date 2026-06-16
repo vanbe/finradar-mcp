@@ -1,0 +1,14 @@
+# Never commit secrets
+.env
+token
+*.token
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+.uv/
