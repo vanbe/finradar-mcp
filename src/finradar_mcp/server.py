@@ -67,6 +67,86 @@ def _fiche_url(number: str) -> str:
     return f"{_base_url()}/e/{number}"
 
 
+# ─────────────── formatting → analysis-ready output (no client-side code needed) ───────────────
+def _eur(v) -> str:
+    if v is None:
+        return "—"
+    n = float(v)
+    a = abs(n)
+    if a >= 1e9:
+        return f"€{n / 1e9:.2f}bn"
+    if a >= 1e6:
+        return f"€{n / 1e6:.1f}m"
+    if a >= 1e3:
+        return f"€{n / 1e3:.0f}k"
+    return f"€{n:.0f}"
+
+
+def _pct(v) -> str:
+    return "—" if v is None else f"{float(v) * 100:.1f}%"
+
+
+def _ratio(v) -> str:
+    return "—" if v is None else f"{float(v):.2f}"
+
+
+def _num(v) -> str:
+    return "—" if v is None else f"{float(v):,.0f}"
+
+
+def _days(v) -> str:
+    return "—" if v is None else f"{float(v):.0f}d"
+
+
+_FMT = {"eur": _eur, "pct": _pct, "ratio": _ratio, "num": _num, "days": _days}
+
+# curated rows for the multi-year table (key, label, kind) — the headline figures an analyst reads
+_TABLE_ROWS = [
+    ("employees", "Employees (FTE)", "num"),
+    ("turnover", "Turnover", "eur"),
+    ("ebitda", "EBITDA", "eur"),
+    ("ebit", "EBIT", "eur"),
+    ("net_result", "Net result", "eur"),
+    ("equity", "Equity", "eur"),
+    ("total_assets", "Total assets", "eur"),
+    ("total_debt", "Total debt", "eur"),
+    ("cash", "Cash", "eur"),
+    ("working_capital", "Working capital", "eur"),
+    ("dividends", "Dividends", "eur"),
+    ("solvency", "Solvency", "pct"),
+    ("debt_ratio", "Debt ratio", "pct"),
+    ("current_ratio", "Current ratio", "ratio"),
+    ("roe", "ROE", "pct"),
+    ("roa", "ROA", "pct"),
+    ("net_margin", "Net margin", "pct"),
+]
+_MAX_TABLE_YEARS = 6
+
+
+def _markdown_table(headers: list[str], rows: list[list[str]]) -> str:
+    head = "| " + " | ".join(headers) + " |"
+    sep = "| " + " | ".join("---" for _ in headers) + " |"
+    body = "\n".join("| " + " | ".join(r) + " |" for r in rows)
+    return "\n".join([head, sep, body])
+
+
+def _financials_table(trend: list[dict]) -> str | None:
+    """Pre-rendered multi-year table (metrics as rows, recent years as columns) so the model can
+    present it directly without writing any formatting code."""
+    if not trend:
+        return None
+    years = trend[:_MAX_TABLE_YEARS]                       # trend is newest-first
+    headers = ["Metric"] + [str(y.get("year")) for y in years]
+    rows = []
+    for key, label, kind in _TABLE_ROWS:
+        if all(y.get(key) is None for y in years):
+            continue                                       # skip rows with no data at all
+        rows.append([label] + [_FMT[kind](y.get(key)) for y in years])
+    acct = [str(y.get("account_type") or "—") for y in years]
+    rows.append(["Accounts model"] + acct)
+    return _markdown_table(headers, rows)
+
+
 # ─────────────────────────────── tools ───────────────────────────────
 @mcp.tool()
 def search_companies(query: str, limit: int = 20) -> dict:
@@ -177,11 +257,23 @@ def screen_companies(
         }
         for r in d.get("rows", [])
     ]
+    table = None
+    if rows:
+        headers = ["#", "Company", "Nr", "City", "Yr", "EBITDA", "Net result", "Equity", "FTE"]
+        trows = [[
+            str(i), (r["name"] or "—")[:40], r["enterprise_number"], (r["city"] or "—")[:24],
+            str(r["year"] or "—"), _eur(r["ebitda_eur"]), _eur(r["net_result_eur"]),
+            _eur(r["equity_eur"]), _num(r["employees"]),
+        ] for i, r in enumerate(rows, 1)]
+        table = _markdown_table(headers, trows)
     return {
-        "matches": rows,
+        "table": table,                      # ready to present; amounts in EUR (m/bn scaled)
+        "matches": rows,                     # full structured rows for custom use
         "returned": len(rows),
         "total_matches": d.get("total"),
         "ordered_by": order_by + (" desc" if desc else " asc"),
+        "notes": "`table` is pre-formatted — present it directly. `total_matches` is the full "
+                 "count behind the returned sample; offer to refine or sort if it's large.",
         "source": "NBB/BNB annual accounts (latest filed year per company)",
     }
 
@@ -196,6 +288,11 @@ def get_company(number: str) -> dict:
     margins, solvency, current ratio, ROE/ROA, DSO/DPO, headcount…), the people and
     companies connected to it (directors and shareholders), and the list of filed annual
     accounts. Every number comes from official NBB/BNB filings.
+
+    The result includes `financials_table`: a ready-to-present Markdown table (recent years ×
+    headline metrics, already formatted). Present it directly — no need to write code to parse
+    or reformat the output. `financials_by_year` holds the full structured history for custom
+    calculations or older years.
 
     Args:
         number: the 10-digit enterprise number (digits only, e.g. "0400378485").
@@ -244,9 +341,15 @@ def get_company(number: str) -> dict:
             "linkedin": d.get("linkedin"),
             "page": _fiche_url(num),
         },
+        # ready-to-present table (recent years × headline metrics) — no formatting code needed
+        "financials_table": _financials_table(d.get("trend") or []),
+        # full structured history (newest-first), raw numbers in EUR / fractions, for custom asks
         "financials_by_year": d.get("trend") or [],
         "connections": relations,
         "filed_accounts": documents,
+        "notes": "Amounts in EUR; ratios are fractions (0.41 = 41%); employees = average FTE. "
+                 "`financials_table` is pre-formatted (last 6 years) — present it directly. Use "
+                 "`financials_by_year` only for older years or custom calculations.",
         "source": "Identity: KBO/BCE · Figures & ratios: NBB/BNB annual accounts. "
                   "Ratios are computed from official balance-sheet lines; open the company "
                   "page to export an Excel with the underlying formulas.",
