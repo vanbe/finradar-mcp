@@ -11,38 +11,64 @@ then (2) **act as the analyst persona** described below for the whole conversati
 
 ---
 
-## Part 1 — First-run setup (do this once, automatically)
+## Part 1 — First-run setup (do this once, fast and deterministically)
 
-When the user pastes a FinRadar token (it looks like `frad_…`) or asks you to set things up:
+When the user pastes a FinRadar token (it looks like `frad_…`) or asks you to set things up,
+**do not improvise environment archaeology.** This repo ships a single setup script that does
+everything (store token, smoke-test, install deps, register the MCP server). Run it, then
+reconnect. Keep every shell command **single-line** (avoid heredocs — they break quoting).
 
-1. **Store the token securely.** Write it to `~/.finradar/token` and restrict permissions:
-   - create the `~/.finradar` directory if needed,
-   - write *only* the token string (no quotes, no newline noise) to `~/.finradar/token`,
-   - `chmod 600 ~/.finradar/token`.
-   Never print the token back to the user, never write it into any file that git tracks
-   (`.env`, `.mcp.json`, code). `~/.finradar/token` is outside the repo — that is deliberate.
+**Step 1 — run the setup script** from the repo root, passing the token as an argument:
 
-2. **Make sure the MCP server can run.** This repo ships a project-scoped `.mcp.json` that
-   launches the server with `uvx --from . finradar-mcp`.
-   - If `uv`/`uvx` is available, nothing else is needed.
-   - If not, either install uv (`curl -LsSf https://astral.sh/uv/install.sh | sh`) **or**
-     fall back to pip: `python3 -m pip install -e .`, and if needed rewrite the `command`
-     in `.mcp.json` to `finradar-mcp` (or `python3 -m finradar_mcp.server`).
-   The server needs Python ≥ 3.10 and the `mcp` and `httpx` packages (declared in
-   `pyproject.toml`).
+```
+python3 setup_finradar.py frad_THE_TOKEN
+```
 
-3. **Confirm the connection.** The MCP server exposes these tools — confirm they are
-   available: `search_companies`, `screen_companies`, `get_company`,
-   `get_ownership_network`, `get_person`. If they are not yet listed, tell the user to
-   approve the "finradar" MCP server (Claude Code may ask once) or to reopen the project.
+(`python` instead of `python3` on some systems; `py -3` on native Windows.) The script is
+standard-library only, so it always runs. It prints a ✓/✗ for each step and ends with the
+exact command to register the server and example questions. **Read its output** — it tells
+you whether the token works and what (if anything) is left to do.
 
-4. **Smoke-test quietly.** Call `search_companies("Colruyt")`. If it returns results, you
-   are live. If it returns a 401/token error, the token is wrong or revoked — ask the user
-   to generate a fresh one (FinRadar web app → profile → "AI agent" → Generate a token).
+**On Windows, pick a Python in this order** (the `python3` that opens the Microsoft Store is a
+*stub*, not a real Python — `python3 --version` prints nothing; don't use it):
 
-5. **Greet and orient.** Once live, greet the user **in their language** (detect it; default
-   to the language they wrote in — French, English or Dutch) and offer 3–4 concrete example
-   questions (see the persona below). Keep it short and inviting.
+1. **A real native Windows Python.** Test with `py -3 --version` (or `python --version`). If it
+   prints a version, use it: `py -3 setup_finradar.py frad_THE_TOKEN`. The launch command is
+   then `py -3 -m finradar_mcp.server`.
+2. **Otherwise, WSL** (if the repo lives there / WSL is installed — check `wsl.exe -l -q`). Run
+   setup inside WSL and register with a `wsl.exe` wrapper so the Windows Claude Code can launch
+   the Linux server:
+   ```
+   wsl.exe -e bash -lc "cd '<repo-path-in-wsl>' && python3 setup_finradar.py frad_THE_TOKEN --no-register"
+   claude mcp add finradar --scope user -- wsl.exe -e bash -lc "cd '<repo-path-in-wsl>' && exec python3 -m finradar_mcp.server"
+   ```
+3. **Otherwise, no Python at all** — install one, then go back to step 1:
+   - try winget (built into Windows 10/11): `winget install -e --id Python.Python.3.12`,
+     then open a **new** terminal so `py -3` is on PATH;
+   - if winget isn't available, tell the user to install Python from
+     https://www.python.org/downloads/ and to **tick "Add python.exe to PATH"** in the
+     installer (one screen, one checkbox), then re-run setup. Don't leave them stuck — give
+     the link and the one checkbox to tick.
+
+On native Windows (steps 1/3) register with: `claude mcp add finradar --scope user -- py -3 -m finradar_mcp.server`.
+
+**Step 2 — make the tools live.** The script registers the "finradar" server (user scope) when
+the `claude` CLI is available. To load the tools **in this session**, run `/mcp` (reconnect)
+or reopen the folder. If `claude` wasn't found, run the `claude mcp add …` line the script
+printed, then reconnect.
+
+**Step 3 — confirm via the tools, not curl.** Once connected, call the MCP tool
+`search_companies("Colruyt")`. If it returns results you are live. *Do not* answer the user by
+hitting the API with ad-hoc `curl`/python — use the tools; the whole point is that they work.
+(The script already proved the token is valid; if a tool now returns 401, the token was
+deleted — ask for a fresh one: FinRadar → profile → "AI agent".)
+
+**Step 4 — greet and orient.** Greet the user **in their language** (default to the language
+they wrote in — French, English or Dutch) and offer 3–4 concrete example questions (below).
+Keep it short and inviting. Total setup should be a couple of commands, not a long exploration.
+
+The tools you should see: `search_companies`, `screen_companies`, `get_company`,
+`get_ownership_network`, `get_person`.
 
 ---
 

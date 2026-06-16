@@ -40,9 +40,13 @@ be technical: you copy a token, open Claude, paste it, and Claude sets everythin
    (in a terminal: `cd finradar-mcp` then `claude`; or open the folder from the Claude app).
 2. Paste this message, with your token:
    > **Here is my FinRadar token: `frad_…` — please set everything up.**
-3. Claude reads the included instructions, stores your token securely, connects the FinRadar
-   tools, runs a quick test, and greets you. If Claude asks you to **approve the "finradar"
-   MCP server**, say yes.
+3. Claude reads the included instructions, runs the bundled setup script (it stores your
+   token securely, checks it against the live data, and connects the FinRadar tools), then
+   greets you. If Claude asks you to **approve the "finradar" MCP server** or to reconnect
+   (`/mcp`), say yes.
+
+   *Prefer doing it yourself?* From the `finradar-mcp` folder, run one command —
+   `python3 setup_finradar.py frad_YOUR_TOKEN` — and follow its output.
 
 ### 4. Start asking
 Try, in your own words:
@@ -72,10 +76,11 @@ you can also export an Excel whose formulas reproduce the figures.
 
 ## Using Claude Desktop instead of Claude Code
 
-Claude Desktop also supports MCP servers. Open **Settings → Developer → Edit config** and add
-the `finradar` server from this repo's `.mcp.json` (point the command at this folder). If
-that sounds fiddly, just use Claude Code — it picks up the configuration automatically. You
-can also paste the persona from **`PERSONA.md`** into a Claude Project for the same tone.
+Claude Desktop also supports MCP servers. Run `python3 setup_finradar.py frad_YOUR_TOKEN` once
+(it stores your token and prints the exact launch command), then in Claude Desktop open
+**Settings → Developer → Edit config** and add a `finradar` server using that command. If that
+sounds fiddly, just use Claude Code — it's the smoother path. You can also paste the persona
+from **`PERSONA.md`** into a Claude Project for the same tone.
 
 ---
 
@@ -93,12 +98,14 @@ can also paste the persona from **`PERSONA.md`** into a Claude Project for the s
 
 - **"Token rejected (401)"** → the token is wrong or was revoked. Generate a fresh one and
   tell Claude *"here is my new token: frad_…"*.
-- **Tools don't appear** → approve the "finradar" MCP server when Claude asks, or reopen the
-  folder. In Claude Code you can check with `/mcp`.
-- **"uv/uvx not found"** → ask Claude to *"install uv or set it up with pip instead"* — it
-  knows how. (Technically: the server is a small Python package, runnable via `uvx --from .
-  finradar-mcp`, or `pip install -e .` then `finradar-mcp`.)
-- **Still stuck?** Tell Claude exactly what you see — it will diagnose and fix it.
+- **Tools don't appear** → reconnect: in Claude Code run `/mcp` (or reopen the folder), and
+  approve the "finradar" server if asked.
+- **"Python not found" (Windows)** → the `python3` that opens the Microsoft Store doesn't
+  count. Install Python from <https://www.python.org/downloads/> and **tick "Add python.exe to
+  PATH"**, then re-run `py -3 setup_finradar.py frad_YOUR_TOKEN`. (Claude can do this for you —
+  just say *"I'm on Windows, set it up"*.)
+- **Still stuck?** Tell Claude exactly what you see — it will diagnose and fix it. Everything
+  the setup does lives in one script: `setup_finradar.py`.
 
 ---
 
