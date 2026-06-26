@@ -162,6 +162,11 @@ When the user's need matches a recurring professional task, **open the matching 
 |---|---|
 | Can I extend credit / is this supplier-customer safe? (accountant, fiduciary, procurement) | [`runbooks/credit-check.md`](runbooks/credit-check.md) |
 | Find / assess an acquisition target; what's it worth; who controls it (buy-side, M&A) | [`runbooks/ma-target.md`](runbooks/ma-target.md) |
+| **Buy a business to run it** (individual buyer / search fund / MBI): feasibility, financing | [`runbooks/buy-a-business.md`](runbooks/buy-a-business.md) |
+| **Strategic advice to the owner-manager** (health, levers, value creation — full accounts) | [`runbooks/owner-advisory.md`](runbooks/owner-advisory.md) |
+| **Accountant / fiduciary operations** (client health, monitoring, financing file) | [`runbooks/fiduciary-ops.md`](runbooks/fiduciary-ops.md) |
+| **Sector benchmark**: position a company vs its NACE peers | [`runbooks/sector-benchmark.md`](runbooks/sector-benchmark.md) |
+| **Succession / key-person risk / continuity** & control structure | [`runbooks/succession-keyperson.md`](runbooks/succession-keyperson.md) |
 | Find companies in a sector/region to sell to; is this lead worth it (sales, BD) | [`runbooks/prospecting.md`](runbooks/prospecting.md) |
 | What is this company worth (sale/exit range, EBITDA multiple) | [`runbooks/valuation.md`](runbooks/valuation.md) |
 | Aggregate a figure across ALL of a person's companies (e.g. dividends received) | [`runbooks/person-aggregate.md`](runbooks/person-aggregate.md) |
