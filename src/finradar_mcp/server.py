@@ -194,6 +194,7 @@ def screen_companies(
     zipcode: str | None = None,
     min_solvency: float | None = None,
     min_equity: float | None = None,
+    max_equity: float | None = None,
     min_current_ratio: float | None = None,
     min_ebitda: float | None = None,
     max_ebitda: float | None = None,
@@ -219,6 +220,9 @@ def screen_companies(
             centre, "10" = Brussels region, "20"/"21" = Antwerp, "9" = East Flanders.
         min_solvency: minimum solvency ratio as a fraction (0.5 = 50% equity/assets).
         min_equity: minimum equity in euros (e.g. 1000000 for €1M).
+        max_equity: maximum equity in euros — cap target SIZE. For a budget-constrained buyer,
+            set max_equity (and max_ebitda) so the screen returns financeable SMEs, not giants.
+            The buyer's own equity budget is NOT a min_equity on the target — don't confuse them.
         min_current_ratio: minimum current ratio (current assets / short-term debt).
         min_ebitda / max_ebitda: EBITDA bounds in euros.
         situation: "abnormal" for companies in any non-normal legal situation (bankruptcy,
@@ -241,7 +245,7 @@ def screen_companies(
     """
     params = {
         "nace": nace, "zipcode": zipcode, "min_solvency": min_solvency,
-        "min_equity": min_equity, "min_current_ratio": min_current_ratio,
+        "min_equity": min_equity, "max_equity": max_equity, "min_current_ratio": min_current_ratio,
         "min_ebitda": min_ebitda, "max_ebitda": max_ebitda, "situation": situation,
         "acquirable_only": acquirable_only, "exclude_distressed": exclude_distressed,
         "order_by": order_by, "desc": desc, "limit": max(1, min(limit, 200)),

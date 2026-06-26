@@ -20,14 +20,29 @@ filters apply before any analysis:
    *Exception:* if the user explicitly wants **distressed / turnaround / asset pick-up**, keep them
    but handle separately (see § D).
 
-## A. Sourcing a shortlist
-1. **ONE** well-parameterised `screen_companies` call:
-   - `acquirable_only=true` **always**; `exclude_distressed=true` unless an explicit distressed mandate.
-   - sector (`nace` prefix), region (`zipcode` prefix), thresholds (`min_solvency`, `min_equity`,
-     `min_ebitda`). For a buyer with €X of equity, size `min_ebitda`/`min_equity` to a target the
-     buyer can realistically finance (order of magnitude, not a hard rule).
-   - Sort by `ebitda` (earnings power) or `equity`.
-2. Each row carries `legal_form` and `distress` (legal situation if not normal).
+## A. Sourcing a shortlist — **size a FINANCEABLE target first**
+⚠️ Classic mistake: sorting `order_by=ebitda` with **no size ceiling** → you surface the BIGGEST
+companies in the area (multinationals) the buyer cannot finance. And the **buyer's equity budget is
+NOT a `min_equity` on the target** (don't confuse the acquirer's capital with the target's equity).
+
+**Compute the affordable price range first**, then translate it into size caps:
+1. **Buying power** ≈ buyer's equity ÷ the equity share of the structure. An SME LBO is typically
+   **30–50% equity** + bank debt (≈ 3–4× EBITDA) + possible vendor loan / regional subsidy. So:
+   - **Affordable enterprise value (EV) ≈ equity ÷ 0.3 to 0.5.**
+     *E.g. €200k equity → EV ≈ €0.4–0.7M* (top of range with vendor loan / subsidy).
+2. **Translate EV to target EBITDA**: EV ≈ EBITDA × **4–6×** ⇒ **target EBITDA ≈ EV ÷ 5**.
+   *E.g. EV €0.4–0.7M → EBITDA ≈ €80–150k.* Use a wide band.
+3. **Parameterise the screen with UPPER bounds** (the key point):
+   - `acquirable_only=true`; `exclude_distressed=true` (unless distressed mandate).
+   - `min_ebitda` ≈ low end (profitable, e.g. €50–75k) AND **`max_ebitda` ≈ high end** (e.g.
+     €200–300k) — without this ceiling you get giants.
+   - **`max_equity`** to drop very large balance sheets (e.g. ≤ €1–2M equity).
+   - `nace` (sector) and `zipcode` (region) per the request.
+   - `min_solvency` ≈ 0.25–0.30 to avoid over-leveraged firms.
+   - `order_by=ebitda` is still fine, but **`max_ebitda`/`max_equity` is what guarantees affordability**.
+4. Too few results → widen the bounds once; too many → tighten. Explain the bounds and **why**
+   (the financing structure), not just the list.
+5. Each row carries `legal_form` and `distress` (legal situation if not normal).
    **If `distress` is set on a row** (only possible under a distressed mandate): mark it **🔴
    explicitly** in the table; never present it as a healthy target.
 3. Present a **shortlist table** (name, n°, region, size, equity, solvency, form) and state the
