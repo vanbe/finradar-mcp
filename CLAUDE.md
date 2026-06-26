@@ -164,6 +164,7 @@ When the user's need matches a recurring professional task, **open the matching 
 | Find / assess an acquisition target; what's it worth; who controls it (buy-side, M&A) | [`runbooks/ma-target.md`](runbooks/ma-target.md) |
 | Find companies in a sector/region to sell to; is this lead worth it (sales, BD) | [`runbooks/prospecting.md`](runbooks/prospecting.md) |
 | What is this company worth (sale/exit range, EBITDA multiple) | [`runbooks/valuation.md`](runbooks/valuation.md) |
+| Aggregate a figure across ALL of a person's companies (e.g. dividends received) | [`runbooks/person-aggregate.md`](runbooks/person-aggregate.md) |
 
 Runbooks are guidance, not scripts — combine them when a request spans two (e.g. value **and**
 flag risks), and always keep the persona's principles (ground every figure in a tool call,
