@@ -198,6 +198,8 @@ def screen_companies(
     min_ebitda: float | None = None,
     max_ebitda: float | None = None,
     situation: str | None = None,
+    acquirable_only: bool = False,
+    exclude_distressed: bool = False,
     order_by: str = "ebitda",
     desc: bool = True,
     limit: int = 25,
@@ -221,6 +223,14 @@ def screen_companies(
         min_ebitda / max_ebitda: EBITDA bounds in euros.
         situation: "abnormal" for companies in any non-normal legal situation (bankruptcy,
             dissolution, …) — useful for distress screens. Omit for normal companies.
+        acquirable_only: True for an M&A target screen — excludes legal forms that cannot be
+            bought (no transferable share capital / non-profit / public): non-profits (ASBL/VZW),
+            foundations, mutual insurers, professional unions, public-law bodies, CPAS, religious
+            establishments, co-ownerships, foreign associations… Keeps SRL/BV, SA/NV, SC/CV, etc.
+        exclude_distressed: True to drop companies in distress (bankruptcy, dissolution /
+            liquidation, judicial reorganisation / moratorium). Use for an M&A target screen unless
+            the user explicitly wants distressed / turnaround opportunities. Each returned row also
+            carries `legal_form` and `distress` (the legal situation when not normal — flag it).
         order_by: one of "ebitda","equity","net_result","total_assets","employees","name",
             "zipcode","year". Default "ebitda".
         desc: True for descending (largest first), False for ascending.
@@ -233,6 +243,7 @@ def screen_companies(
         "nace": nace, "zipcode": zipcode, "min_solvency": min_solvency,
         "min_equity": min_equity, "min_current_ratio": min_current_ratio,
         "min_ebitda": min_ebitda, "max_ebitda": max_ebitda, "situation": situation,
+        "acquirable_only": acquirable_only, "exclude_distressed": exclude_distressed,
         "order_by": order_by, "desc": desc, "limit": max(1, min(limit, 200)),
         "include_all": False,
     }
@@ -243,7 +254,9 @@ def screen_companies(
         {
             "enterprise_number": r["enterprise_number"],
             "name": r.get("name"),
-            "legal_form": r.get("juridical_form"),
+            "legal_form": r.get("form_label") or r.get("juridical_form"),
+            # distress = legal situation when NOT normal (bankruptcy, liquidation, reorg) → flag it.
+            "distress": r.get("situation_label") if (r.get("situation") or "000") != "000" else None,
             "city": " ".join(x for x in [r.get("zipcode"), r.get("municipality")] if x) or None,
             "year": r.get("year"),
             "employees": r.get("employees"),
