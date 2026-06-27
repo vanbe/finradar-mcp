@@ -85,6 +85,12 @@ is a contextual judgement, not a fixed constant). Method:
 Example: "EV ≈ EBITDA €1.2M × 4–6× = **€4.8–7.2M**; − net debt ~€0.8M ⇒ **equity value ≈ €4.0–6.4M**
 (assumptions: unnormalised EBITDA, net debt estimated from the latest balance sheet)."
 
+⚠️ **MANDATORY headline/calc coherence**: the number you **announce** (headline / opening line) MUST be
+**exactly** the `EV − net debt` bridge result — never a separately invented "equity value". If **net
+debt ≈ or > EV**, equity value is **near zero or negative**: say so plainly (no share deal without
+deleveraging; value on **net assets**), and do NOT headline a flattering EBITDA-multiple range that
+contradicts your own bridge. A lead saying "€5–8M" while the body computes "~€0" is a banned answer.
+
 ## D. Distressed case (only on an explicit mandate)
 - Often prefer an **asset deal** (buying the business / selected assets) over a **share deal**: avoid
   inheriting the liabilities and history of an entity under proceedings.

@@ -5,7 +5,16 @@ You position a company **against its peers**, in ranges, not absolutes.
 **Use when:** "how does X compare in its sector?", "what are sector Y's margins?", "is this a good
 margin for this trade?", "who are the leaders in this sector/region?".
 
-## Approach (efficient: 1 target fetch + 1 peer screen — NO loop)
+## Case A — sector question with NO named company ("what are bakery margins in Wallonia?")
+**ONE `screen_companies`** (sector + region), `limit` 25–30, then **compute the median/range directly
+from the returned rows** and answer. **FORBIDDEN**: calling `get_company` on every panel company to
+"get the margins" — that is the #1 cause of a loop that blows the call limit. If the screen rows don't
+carry the margin (turnover undisclosed in abbreviated filings), **say so plainly** ("most file
+abbreviated accounts without turnover → indicative order of magnitude on the full-filing subset")
+rather than looping. **At most 1–2 tool calls for this case.** Give an honest order of magnitude + the
+panel size, and offer to refine (precise area/size).
+
+## Case B — position a NAMED company (efficient: 1 target fetch + 1 peer screen — NO loop)
 1. **Target**: `get_company(number)` → NACE, size, margins. Note the **schema** (abbreviated →
    turnover often undisclosed → margins not comparable; say so).
 2. **Peer panel in ONE `screen_companies`**: same sector (`sector`/`nace`), relevant region,

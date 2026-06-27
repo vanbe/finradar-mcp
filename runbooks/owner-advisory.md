@@ -25,6 +25,12 @@ disclosed → margins not computable).
    it can grow without external capital. Compare to actual revenue growth.
 6. **Distribution policy**: dividends vs result → over-distributing (weakens balance sheet) or
    hoarding idle cash?
+   - **"Can I distribute a dividend?" → apply the Belgian DOUBLE TEST (SRL/BV, SA/NV)**:
+     **(1) net-asset test** — equity AFTER distribution stays positive (and ≥ unavailable reserves):
+     show **equity − proposed dividend**; **(2) liquidity test** — the company can still pay its debts
+     for ~12 months (cash + working capital after the cash leaves). Give a prudent amount, show
+     **equity and solvency AFTER** the distribution, and **refer to the tax adviser** for the quantified
+     optimisation (withholding, liquidation reserve) — don't compute that yourself.
 7. (Optional) quick **sector benchmark** via `screen_companies` (same NACE/size) — or chain the
    `sector-benchmark` runbook.
 

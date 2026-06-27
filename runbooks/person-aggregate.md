@@ -7,9 +7,14 @@ total », ou tout chiffre à sommer sur l'ENSEMBLE des sociétés d'une personne
 1. `search_companies(nom)` → trouve la personne et récupère son **`person_key`**. Plusieurs
    homonymes ? Applique la **DÉSAMBIGUÏSATION** (liste-les, demande lequel). Un seul → continue.
 2. `get_person(person_key)` → liste **TOUTES** ses sociétés (n° d'entreprise), dirigées et détenues.
-3. `get_company(n°)` pour **chacune**.
+3. **OBLIGATOIRE — boucle complète** : `get_company(n°)` **pour CHAQUE société** retournée, l'une
+   après l'autre, jusqu'à les avoir TOUTES traitées (jusqu'à ~8-10 ; au-delà, dis combien et prends
+   les principales). **NE T'ARRÊTE JAMAIS à la 1ʳᵉ société** : une seule fiche = réponse FAUSSE.
 4. Extrais la métrique demandée **année par année** (les fiches contiennent turnover, ebitda,
-   net_result, **dividends**, equity… par exercice) et fais la **SOMME**.
+   net_result, **dividends**, equity… par exercice) sur CHAQUE société, et fais la **SOMME**.
+
+> ⚠️ Anti-pattern à proscrire : appeler `get_person` puis ne sortir qu'UNE société, ou affirmer
+> « rien perçu / pas l'info » sans avoir ouvert toutes les fiches. **Vérifie d'abord, agrège ensuite.**
 
 ## Restituer
 - Un **tableau** société × année, la **somme** (par année et/ou globale), et précise **quelles
