@@ -385,6 +385,18 @@ def get_company(number: str) -> dict:
          "filed": str(doc.get("deposit_date") or "") or None}
         for doc in (d.get("documents") or [])
     ]
+    te = info.get("turnover_estimate")
+    estimated_turnover = None
+    if te:
+        _b = {"grossmargin": "gross margin", "ebitda": "EBITDA", "assets": "total assets",
+              "personnel": "staff costs"}.get(te.get("basis"), te.get("basis"))
+        estimated_turnover = {
+            "value": te.get("value"), "low": te.get("low"), "high": te.get("high"),
+            "confidence": te.get("confidence"), "basis": _b, "n_peers": te.get("n"),
+            "label": "ESTIMATE — turnover NOT filed (abbreviated accounts). Present explicitly as an "
+                     "estimate with its range; never as an official figure. Any valuation built on it "
+                     "inherits this uncertainty.",
+        }
     return {
         "identity": {
             "enterprise_number": info.get("enterprise_number", num),
@@ -392,6 +404,7 @@ def get_company(number: str) -> dict:
             "legal_form": info.get("juridical_form"),
             "status": info.get("status"),
             "legal_situation": info.get("situation_label"),
+            "company_type": info.get("company_type"),  # operating | holding | public | unknown
             "is_natural_person": info.get("type_of_enterprise") == "1",
             "start_date": str(info.get("start_date") or "") or None,
             "address": address.strip(", ") or None,
@@ -407,6 +420,8 @@ def get_company(number: str) -> dict:
         "financials_table": _financials_table(d.get("trend") or []),
         # full structured history (newest-first), raw numbers in EUR / fractions, for custom asks
         "financials_by_year": d.get("trend") or [],
+        # present ONLY if turnover isn't filed: a sector-coefficient ESTIMATE (range + confidence)
+        "estimated_turnover": estimated_turnover,
         "connections": relations,
         "filed_accounts": documents,
         "notes": "Amounts in EUR; ratios are fractions (0.41 = 41%); employees = average FTE. "
