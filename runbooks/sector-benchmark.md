@@ -6,12 +6,14 @@ You position a company **against its peers**, in ranges, not absolutes.
 margin for this trade?", "who are the leaders in this sector/region?".
 
 ## Case A — sector question with NO named company ("what are bakery margins in Wallonia?")
-**ONE `sector_stats(sector="bakery")` call** → it returns the **median + quartiles (P25/P75) + sample
-size (n)** per metric (margins, solvency, ROE…) directly. Answer with those. **Do NOT loop** over
+**ONE `sector_stats(sector="bakery", region="Wallonia")` call** → it returns the **median + quartiles
+(P25/P75) + sample size (n)** per metric (margins, solvency, ROE…) for the requested **region**
+(Wallonia / Flanders / Brussels; else national). Answer with those. **Do NOT loop** over
 `screen_companies`/`get_company` to "recompute" margins — pointless, and it was the #1 cause of a loop
-that blew the call limit. Give median + interquartile range + **cite n**, and note that margins cover
-only full-schema filers (companies disclosing turnover). `year` optional (defaults to latest). Regional
-granularity isn't in `sector_stats` yet (national panel) — say so if the user insists on an area.
+that blew the call limit. Give median + interquartile range + **cite n**, and note margins cover only
+full-schema filers (companies disclosing turnover). `year` optional. ⚠️ The panel states the region
+actually used: if you asked for a region but it fell back to "national" (regional sample too small),
+say so honestly.
 
 ## Case B — position a NAMED company (1 target fetch + 1 `sector_stats` call — NO loop)
 1. **Target**: `get_company(number)` → NACE, size, margins, ratios. Note the **schema** (abbreviated →

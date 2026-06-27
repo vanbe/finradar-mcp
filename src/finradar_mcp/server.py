@@ -480,19 +480,21 @@ def get_person(person_key: str) -> dict:
 
 @mcp.tool()
 def sector_stats(sector: str | None = None, nace: str | None = None,
-                 year: int | None = None) -> dict:
-    """Sector benchmark figures: median + quartiles (P25/P75) + sample size (n) per NACE.
+                 region: str | None = None, year: int | None = None) -> dict:
+    """Sector benchmark figures: median + quartiles (P25/P75) + sample size (n) per NACE and region.
 
     Use this — in ONE call, no looping over screen_companies/get_company — to answer
-    "what's a good margin/solvency level in sector X?" or to position a company against
-    its peers. Give either a plain-language `sector` (e.g. "bakery", "construction") or a
-    `nace` code/prefix (e.g. "107", or a target company's NACE). `year` optional (defaults
-    to the latest). Ratios are returned as fractions (0.025 = 2.5%). v1 = national panel,
-    all sizes; margins cover only companies that publish turnover (full-schema filers).
+    "what's a good margin/solvency level in sector X (in Wallonia / Flanders / Brussels)?" or to
+    position a company against its peers. Give either a plain-language `sector` (e.g. "bakery",
+    "construction") or a `nace` code/prefix (e.g. "107", or a target company's NACE). `region`
+    optional ("Wallonia"/"Flanders"/"Brussels" or a province/city — falls back to national if the
+    regional sample is too small; the returned panel states the region actually used). `year` optional
+    (defaults to latest). Ratios are fractions (0.025 = 2.5%); margins cover only full-schema filers.
 
     Args:
         sector: plain-language sector term (resolved to NACE server-side).
         nace: NACE code or prefix (alternative to `sector`).
+        region: optional region/province/city (resolved server-side; national fallback).
         year: optional financial year; defaults to the most recent available.
     """
     params: dict[str, Any] = {}
@@ -500,6 +502,8 @@ def sector_stats(sector: str | None = None, nace: str | None = None,
         params["sector"] = sector
     if nace:
         params["nace"] = nace
+    if region:
+        params["region"] = region
     if year:
         params["year"] = year
     if not params:
