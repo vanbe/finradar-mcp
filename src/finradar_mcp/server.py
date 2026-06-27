@@ -191,6 +191,7 @@ def search_companies(query: str, limit: int = 20) -> dict:
 
 @mcp.tool()
 def screen_companies(
+    sector: str | None = None,
     nace: str | None = None,
     zipcode: str | None = None,
     region: str | None = None,
@@ -218,6 +219,10 @@ def screen_companies(
     Only companies that file annual accounts (legal entities) are screened.
 
     Args:
+        sector: the sector in PLAIN LANGUAGE ("construction", "bakery", "titres-service", "IT",
+            "real estate"…) — resolved to a NACE code server-side. Prefer this over `nace`; only use
+            `nace` when you already know the exact code. If the result has a `note` saying the sector
+            wasn't recognised, ask the user to clarify rather than listing unrelated companies.
         nace: activity code PREFIX (NACE 2025). Sector divisions, e.g. "41","42","43" =
             construction, "62" = IT services, "10"/"11" = food/drink, "47" = retail,
             "68" = real estate, "70" = head-office/consulting, "86" = health. A prefix
@@ -225,11 +230,12 @@ def screen_companies(
         zipcode: Belgian postal-code PREFIX. "4" or "40" = Liège region, "1000" = Brussels
             centre, "10" = Brussels region, "20"/"21" = Antwerp, "9" = East Flanders. Several
             prefixes allowed, comma-separated (e.g. "4,5" = Liège + Namur).
-        region: a NAMED area (region/province/city) resolved server-side to postcodes — use this
-            instead of guessing prefixes. E.g. "Wallonie", "Flandre", "Bruxelles", "Hainaut",
-            "Namur", "Liège", "région de Charleroi", "Mons", "Anvers", "Gand". Don't invent a
+        region: a NAMED area (region/province/city/MUNICIPALITY) resolved server-side to postcodes —
+            use this instead of guessing prefixes. E.g. "Wallonie", "Flandre", "Bruxelles", "Hainaut",
+            "Namur", "Liège", "région de Charleroi", "Mons", "Montigny-le-Tilleul". Don't invent a
             prefix for a named area; pass its name here ("6" alone wrongly mixes Hainaut-south and
-            Luxembourg province — `region` gets it right). Multilingual (FR/NL/EN) and typo-tolerant.
+            Luxembourg province — `region` gets it right). Multilingual (FR/NL/EN), typo-tolerant, and
+            covers EVERY Belgian municipality (not just big cities).
             A NON-Belgian area (France, Paris, Netherlands…) returns a note: only Belgian companies
             are available today.
         near_zip: a Belgian postal code (e.g. "5000") to search within a RADIUS of it — combine with
@@ -266,7 +272,7 @@ def screen_companies(
     number of matches behind the limit.
     """
     params = {
-        "nace": nace, "zipcode": zipcode, "region": region, "near_zip": near_zip,
+        "sector": sector, "nace": nace, "zipcode": zipcode, "region": region, "near_zip": near_zip,
         "radius_km": radius_km, "min_solvency": min_solvency,
         "min_equity": min_equity, "max_equity": max_equity, "min_current_ratio": min_current_ratio,
         "min_ebitda": min_ebitda, "max_ebitda": max_ebitda, "situation": situation,
@@ -280,6 +286,8 @@ def screen_companies(
         return {"matches": [], "total": 0}
     if d.get("geo_note") and not d.get("rows"):     # zone hors Belgique / non reconnue → relaie le message
         return {"matches": [], "total": 0, "note": d["geo_note"]}
+    if d.get("nace_note"):                           # secteur non reconnu → demander une précision
+        return {"matches": [], "total": 0, "note": d["nace_note"]}
     _now_year = datetime.date.today().year
 
     def _row(r):
