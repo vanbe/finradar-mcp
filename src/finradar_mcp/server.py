@@ -193,6 +193,8 @@ def screen_companies(
     nace: str | None = None,
     zipcode: str | None = None,
     region: str | None = None,
+    near_zip: str | None = None,
+    radius_km: float | None = None,
     min_solvency: float | None = None,
     min_equity: float | None = None,
     max_equity: float | None = None,
@@ -224,7 +226,12 @@ def screen_companies(
             instead of guessing prefixes. E.g. "Wallonie", "Flandre", "Bruxelles", "Hainaut",
             "Namur", "Liège", "région de Charleroi", "Mons", "Anvers", "Gand". Don't invent a
             prefix for a named area; pass its name here ("6" alone wrongly mixes Hainaut-south and
-            Luxembourg province — `region` gets it right).
+            Luxembourg province — `region` gets it right). Multilingual (FR/NL/EN) and typo-tolerant.
+            A NON-Belgian area (France, Paris, Netherlands…) returns a note: only Belgian companies
+            are available today.
+        near_zip: a Belgian postal code (e.g. "5000") to search within a RADIUS of it — combine with
+            radius_km (the server resolves the postcode to a point, then filters by distance).
+        radius_km: radius in km around near_zip (e.g. 20 for "within 20 km of Namur").
         min_solvency: minimum solvency ratio as a fraction (0.5 = 50% equity/assets).
         min_equity: minimum equity in euros (e.g. 1000000 for €1M).
         max_equity: maximum equity in euros — cap target SIZE. For a budget-constrained buyer,
@@ -251,7 +258,8 @@ def screen_companies(
     number of matches behind the limit.
     """
     params = {
-        "nace": nace, "zipcode": zipcode, "region": region, "min_solvency": min_solvency,
+        "nace": nace, "zipcode": zipcode, "region": region, "near_zip": near_zip,
+        "radius_km": radius_km, "min_solvency": min_solvency,
         "min_equity": min_equity, "max_equity": max_equity, "min_current_ratio": min_current_ratio,
         "min_ebitda": min_ebitda, "max_ebitda": max_ebitda, "situation": situation,
         "acquirable_only": acquirable_only, "exclude_distressed": exclude_distressed,
@@ -261,6 +269,8 @@ def screen_companies(
     d = _get("/api/screen", params)
     if not d:
         return {"matches": [], "total": 0}
+    if d.get("geo_note") and not d.get("rows"):     # zone hors Belgique / non reconnue → relaie le message
+        return {"matches": [], "total": 0, "note": d["geo_note"]}
     rows = [
         {
             "enterprise_number": r["enterprise_number"],
