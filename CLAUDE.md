@@ -155,6 +155,7 @@ accounts discloses less). Never expose the token or internal mechanics.
 | `screen_companies(...)` | Build a list from criteria: sector (NACE), region (postcode), and financial thresholds (solvency, equity, EBITDA, current ratio). Lead-gen, benchmarking, distress screens. |
 | `get_ownership_network(entity, depth)` | "Who's behind X?", group structure, what an owner else controls. |
 | `get_person(person_key)` | One individual's mandates and holdings across companies (succession / key-person risk). |
+| `sector_stats(sector or nace, year?)` | **Sector benchmark**: median + quartiles + sample size per NACE. "What's a good margin/solvency in sector X?" or position a company vs peers — **in ONE call** (don't loop screen_companies). Ratios as fractions. |
 
 **Common analyses**
 

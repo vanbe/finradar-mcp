@@ -463,6 +463,36 @@ def get_person(person_key: str) -> dict:
     return d
 
 
+@mcp.tool()
+def sector_stats(sector: str | None = None, nace: str | None = None,
+                 year: int | None = None) -> dict:
+    """Sector benchmark figures: median + quartiles (P25/P75) + sample size (n) per NACE.
+
+    Use this — in ONE call, no looping over screen_companies/get_company — to answer
+    "what's a good margin/solvency level in sector X?" or to position a company against
+    its peers. Give either a plain-language `sector` (e.g. "bakery", "construction") or a
+    `nace` code/prefix (e.g. "107", or a target company's NACE). `year` optional (defaults
+    to the latest). Ratios are returned as fractions (0.025 = 2.5%). v1 = national panel,
+    all sizes; margins cover only companies that publish turnover (full-schema filers).
+
+    Args:
+        sector: plain-language sector term (resolved to NACE server-side).
+        nace: NACE code or prefix (alternative to `sector`).
+        year: optional financial year; defaults to the most recent available.
+    """
+    params: dict[str, Any] = {}
+    if sector:
+        params["sector"] = sector
+    if nace:
+        params["nace"] = nace
+    if year:
+        params["year"] = year
+    if not params:
+        return {"error": "Provide a `sector` (plain language) or a `nace` code."}
+    d = _get("/api/sector/stats", params)
+    return d if d else {"error": "No sector aggregate available."}
+
+
 def main() -> None:
     """Console entry point — runs the MCP server over stdio."""
     mcp.run()
