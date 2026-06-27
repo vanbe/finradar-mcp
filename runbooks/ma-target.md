@@ -37,16 +37,21 @@ NOT a `min_equity` on the target** (don't confuse the acquirer's capital with th
    - `min_ebitda` ≈ low end (profitable, e.g. €50–75k) AND **`max_ebitda` ≈ high end** (e.g.
      €200–300k) — without this ceiling you get giants.
    - **`max_equity`** to drop very large balance sheets (e.g. ≤ €1–2M equity).
-   - `nace` (sector) and `zipcode` (region) per the request.
+   - **`min_age_years≈5`**: a real target has a **track record** — drop recently-created entities.
+   - `nace` (sector) and `zipcode`/`region` per the request.
    - `min_solvency` ≈ 0.25–0.30 to avoid over-leveraged firms.
    - `order_by=ebitda` is still fine, but **`max_ebitda`/`max_equity` is what guarantees affordability**.
 4. Too few results → widen the bounds once; too many → tighten. Explain the bounds and **why**
    (the financing structure), not just the list.
-5. Each row carries `legal_form` and `distress` (legal situation if not normal).
-   **If `distress` is set on a row** (only possible under a distressed mandate): mark it **🔴
-   explicitly** in the table; never present it as a healthy target.
-3. Present a **shortlist table** (name, n°, region, size, equity, solvency, form) and state the
-   **total matches** behind the sample. Offer to narrow (size band, profitability, region).
+5. **FLAGS to surface on each row** (`flags`, `employees`, `age_years`, `distress`):
+   - 🚩 **`no_staff`** (0–1 employee) = often a **management / holding / shell** company: if you buy it,
+     **the value walks out with the manager** (the business IS the person). Major key-person risk —
+     say it explicitly; never present it as an operating SME. (To keep only staffed firms: `min_employees`.)
+   - 🚩 **`young`** (< 5 years): little history → caution.
+   - 🔴 **`distress`** (bankruptcy/liquidation/reorg): only under a distressed mandate → mark it.
+6. Present a **shortlist table** (name, n°, region, **headcount**, **age**, EBITDA, **equity**,
+   **total assets**, solvency, form) with a **⚠️ flags** column, and state the **total matches**
+   behind the sample. Offer to narrow (size band, profitability, region).
 
 ## B. Due diligence on a named target
 1. `get_company(number)` → health, multi-year **trend** (turnover/EBITDA/result), **leverage**
@@ -62,15 +67,20 @@ NOT a `min_equity` on the target** (don't confuse the acquirer's capital with th
 Computed **on the fly**, with the **formula shown** next to the result (transparency; the multiple
 is a contextual judgement, not a fixed constant). Method:
 
-- **Enterprise value (EV) ≈ normalised EBITDA × sector multiple.** Multiple ~**4–8×**:
-  low (3–5×) for small / cyclical / declining / single-customer / highly levered;
-  high (6–8×+) for growing / recurring / asset-light / resilient / niche leader.
-- **Equity value ≈ EV − net debt** (financial debt − cash).
-- **Asset/real-estate company:** reason on **NAV** (net asset value: equity adjusted for latent
-  gains/losses on assets), not an EBITDA multiple.
-- Always a **range** (low→high multiple) and **state the assumptions** (EBITDA used, net debt
-  estimate, multiple and why). **Never a single point.**
-- *Discount* for: key-person dependence, single customer, stale data, uncertain add-backs.
+⚠️ **EBITDA alone is NOT enough** — always cross the earnings approach (EBITDA multiple) with the
+**asset approach** (equity / assets). A large divergence is itself a signal (and often a risk) → explain it.
+- **Earnings — EV ≈ normalised EBITDA × sector multiple** (~**4–8×**: low 3–5× for small / cyclical /
+  declining / single-customer / highly levered; high 6–8×+ for growing / recurring / asset-light /
+  resilient). **Equity value ≈ EV − net debt** (financial debt − cash).
+- **Asset — NAV** (net asset value: equity adjusted for latent gains/losses on assets). It is a
+  **value floor**: a healthy target is worth no less than its net assets. If `total_assets`/`equity`
+  are high vs the EBITDA-implied value → **asset/real-estate company**: value on assets, not (only) EBITDA.
+- **No-staff / management company:** EBITDA is mostly the manager's pay → once they leave, EBITDA
+  collapses. Heavy discount, or value capped at net assets. Flag it.
+- Always a **range** + **state the assumptions** (EBITDA used, net debt estimate, NAV, multiple and why).
+  **Never a single point.**
+- *Discount* for: key-person dependence / no staff, single customer, young company, stale data,
+  uncertain add-backs.
 
 Example: "EV ≈ EBITDA €1.2M × 4–6× = **€4.8–7.2M**; − net debt ~€0.8M ⇒ **equity value ≈ €4.0–6.4M**
 (assumptions: unnormalised EBITDA, net debt estimated from the latest balance sheet)."

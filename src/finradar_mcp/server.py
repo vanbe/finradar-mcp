@@ -13,6 +13,7 @@ National Bank of Belgium (NBB/BNB). Each company has a public page at <base>/e/<
 """
 from __future__ import annotations
 
+import datetime
 import os
 from pathlib import Path
 from typing import Any
@@ -204,6 +205,8 @@ def screen_companies(
     situation: str | None = None,
     acquirable_only: bool = False,
     exclude_distressed: bool = False,
+    min_age_years: int | None = None,
+    min_employees: int | None = None,
     order_by: str = "ebitda",
     desc: bool = True,
     limit: int = 25,
@@ -249,6 +252,11 @@ def screen_companies(
             liquidation, judicial reorganisation / moratorium). Use for an M&A target screen unless
             the user explicitly wants distressed / turnaround opportunities. Each returned row also
             carries `legal_form` and `distress` (the legal situation when not normal — flag it).
+        min_age_years: minimum company age in years. For an acquisition, ~5 keeps targets with a real
+            track record and drops recently-created entities (no history).
+        min_employees: minimum headcount (hard filter). Otherwise companies with no staff are only
+            FLAGGED: a 0–1-employee firm is often a management/holding shell whose value walks out with
+            the manager (key-person risk) — each row carries `flags` (e.g. "no_staff", "young").
         order_by: one of "ebitda","equity","net_result","total_assets","employees","name",
             "zipcode","year". Default "ebitda".
         desc: True for descending (largest first), False for ascending.
@@ -263,6 +271,7 @@ def screen_companies(
         "min_equity": min_equity, "max_equity": max_equity, "min_current_ratio": min_current_ratio,
         "min_ebitda": min_ebitda, "max_ebitda": max_ebitda, "situation": situation,
         "acquirable_only": acquirable_only, "exclude_distressed": exclude_distressed,
+        "min_age_years": min_age_years, "min_employees": min_employees,
         "order_by": order_by, "desc": desc, "limit": max(1, min(limit, 200)),
         "include_all": False,
     }
@@ -271,16 +280,28 @@ def screen_companies(
         return {"matches": [], "total": 0}
     if d.get("geo_note") and not d.get("rows"):     # zone hors Belgique / non reconnue → relaie le message
         return {"matches": [], "total": 0, "note": d["geo_note"]}
-    rows = [
-        {
+    _now_year = datetime.date.today().year
+
+    def _row(r):
+        emp, sd = r.get("employees"), r.get("start_date")
+        founded = int(str(sd)[:4]) if sd and str(sd)[:4].isdigit() else None
+        age = (_now_year - founded) if founded else None
+        flags = []  # M&A risk flags to surface
+        if emp is not None and emp <= 1:
+            flags.append("no_staff")          # management/holding shell — value walks out with the manager
+        if age is not None and age < 5:
+            flags.append("young")             # little track record
+        return {
             "enterprise_number": r["enterprise_number"],
             "name": r.get("name"),
             "legal_form": r.get("form_label") or r.get("juridical_form"),
             # distress = legal situation when NOT normal (bankruptcy, liquidation, reorg) → flag it.
             "distress": r.get("situation_label") if (r.get("situation") or "000") != "000" else None,
+            "flags": flags or None,           # e.g. ["no_staff","young"] — name and weigh these
             "city": " ".join(x for x in [r.get("zipcode"), r.get("municipality")] if x) or None,
             "year": r.get("year"),
-            "employees": r.get("employees"),
+            "founded": founded,
+            "employees": emp,
             "equity_eur": r.get("equity"),
             "total_assets_eur": r.get("total_assets"),
             "net_result_eur": r.get("net_result"),
@@ -289,8 +310,7 @@ def screen_companies(
             "legal_situation": r.get("situation_label"),
             "page": _fiche_url(r["enterprise_number"]),
         }
-        for r in d.get("rows", [])
-    ]
+    rows = [_row(r) for r in d.get("rows", [])]
     table = None
     if rows:
         headers = ["#", "Company", "Nr", "City", "Yr", "EBITDA", "Net result", "Equity", "FTE"]

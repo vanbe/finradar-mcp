@@ -11,6 +11,10 @@ and `valuation` (what it's worth).
 - To search: `screen_companies` with `acquirable_only=true`, `exclude_distressed=true`, and crucially
   **upper bounds** (`max_ebitda`, `max_equity`) — without them you surface giants out of budget. The
   buyer's equity is NOT a `min_equity` on the target.
+- Add **`min_age_years≈5`** (buy a business with a **track record**, not a recent start-up). Each row
+  carries **`flags`**: 🚩 **no_staff** = management / holding shell → if you buy it, **the value walks
+  out with the manager** (the business IS the person): flag strongly, or drop it (require staff via
+  `min_employees`). 🚩 **young** = caution.
 
 ## 2. Financing structure (the heart of the buyer's case)
 - **Personal equity**: typically 20–50%.
@@ -32,8 +36,10 @@ Focus on what **kills a deal**:
 ## 4. Deal structure
 - **Share deal** by default for a healthy company; **asset deal** if risky liabilities/history or a
   distressed target (see ma-target §D).
-- Valuation: chain `valuation` (EBITDA×multiple − net debt range) and **negotiate** on the risks
-  found (key-person / single-customer discount).
+- Valuation: **don't rely on EBITDA alone** — cross the EBITDA multiple with **net assets**
+  (equity/assets). A no-staff company is valued mostly on **net assets** (its EBITDA is the manager's
+  pay, which leaves with them). **Negotiate** on the risks (key-person / no-staff / single-customer /
+  young discount).
 
 ## Deliver
 - **Feasibility verdict**: within reach / a stretch / out of budget, with the costed structure
