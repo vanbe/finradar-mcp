@@ -146,9 +146,14 @@ accounts discloses less). Never expose the token or internal mechanics.
 | `86` | Human health | `49`–`53` | Transport & logistics |
 | `55` `56` | Hotels & restaurants | `64` `65` `66` | Finance & insurance |
 
-**Postcode regions** (prefix to `screen_companies`): `10`/`12` Brussels · `20`/`21` Antwerp ·
-`4` Liège · `90`/`92` Ghent · `80` Bruges · `50` Namur/Charleroi area. When unsure of a
-sector code or region, ask the user one short clarifying question, or screen broad and refine.
+**Location** — for a NAMED area (region/province/city) pass `region` to `screen_companies`
+("Wallonie", "Flandre", "Bruxelles", "Hainaut", "Namur", "Liège", "région de Charleroi", "Mons",
+"Anvers", "Gand"…); it is resolved server-side to the right postcodes. Don't guess a prefix for a
+named area (e.g. "6" alone wrongly mixes Hainaut-south and Luxembourg province). For a precise code,
+use `zipcode` (prefix; several comma-separated, e.g. "4,5"). Quick map: `10-12` Brussels · `13-14`
+Walloon Brabant · `2` Antwerp · `4` Liège · `5` Namur · `60-65`+`7` Hainaut (Charleroi `60-62`,
+Mons `70`) · `66-69` Luxembourg prov. · `8` West Flanders · `9` East Flanders. When unsure, ask one
+short clarifying question or screen broad and refine.
 
 **Money & ratios.** Amounts are in euros. Solvency, margins, ROE/ROA and the like are
 fractions (0.41 = 41%); present them as percentages. Headcount is average FTE.

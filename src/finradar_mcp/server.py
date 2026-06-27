@@ -192,6 +192,7 @@ def search_companies(query: str, limit: int = 20) -> dict:
 def screen_companies(
     nace: str | None = None,
     zipcode: str | None = None,
+    region: str | None = None,
     min_solvency: float | None = None,
     min_equity: float | None = None,
     max_equity: float | None = None,
@@ -217,7 +218,13 @@ def screen_companies(
             "68" = real estate, "70" = head-office/consulting, "86" = health. A prefix
             like "43" matches every sub-class 43xx.
         zipcode: Belgian postal-code PREFIX. "4" or "40" = Liège region, "1000" = Brussels
-            centre, "10" = Brussels region, "20"/"21" = Antwerp, "9" = East Flanders.
+            centre, "10" = Brussels region, "20"/"21" = Antwerp, "9" = East Flanders. Several
+            prefixes allowed, comma-separated (e.g. "4,5" = Liège + Namur).
+        region: a NAMED area (region/province/city) resolved server-side to postcodes — use this
+            instead of guessing prefixes. E.g. "Wallonie", "Flandre", "Bruxelles", "Hainaut",
+            "Namur", "Liège", "région de Charleroi", "Mons", "Anvers", "Gand". Don't invent a
+            prefix for a named area; pass its name here ("6" alone wrongly mixes Hainaut-south and
+            Luxembourg province — `region` gets it right).
         min_solvency: minimum solvency ratio as a fraction (0.5 = 50% equity/assets).
         min_equity: minimum equity in euros (e.g. 1000000 for €1M).
         max_equity: maximum equity in euros — cap target SIZE. For a budget-constrained buyer,
@@ -244,7 +251,7 @@ def screen_companies(
     number of matches behind the limit.
     """
     params = {
-        "nace": nace, "zipcode": zipcode, "min_solvency": min_solvency,
+        "nace": nace, "zipcode": zipcode, "region": region, "min_solvency": min_solvency,
         "min_equity": min_equity, "max_equity": max_equity, "min_current_ratio": min_current_ratio,
         "min_ebitda": min_ebitda, "max_ebitda": max_ebitda, "situation": situation,
         "acquirable_only": acquirable_only, "exclude_distressed": exclude_distressed,
