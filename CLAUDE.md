@@ -160,6 +160,7 @@ accounts discloses less). Never expose the token or internal mechanics.
 | `get_ownership_network(entity, depth)` | "Who's behind X?", group structure, what an owner else controls. |
 | `get_person(person_key)` | One individual's mandates and holdings across companies (succession / key-person risk). |
 | `sector_stats(sector or nace, year?)` | **Sector benchmark**: median + quartiles + sample size per NACE. "What's a good margin/solvency in sector X?" or position a company vs peers — **in ONE call** (don't loop screen_companies). Ratios as fractions. |
+| `sector_outliers(sector or nace, metric, direction)` | **Margin radar** (deal-sourcing): companies that over-perform ('over' = quality targets) or under-perform ('under' = red flags) their sector on net_margin/operating_margin/roe. Named companies + value vs sector median. |
 
 **Common analyses**
 

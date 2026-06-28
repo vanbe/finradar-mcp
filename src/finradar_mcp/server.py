@@ -512,6 +512,36 @@ def sector_stats(sector: str | None = None, nace: str | None = None,
     return d if d else {"error": "No sector aggregate available."}
 
 
+@mcp.tool()
+def sector_outliers(sector: str | None = None, nace: str | None = None, metric: str = "net_margin",
+                    direction: str = "over", region: str | None = None, limit: int = 15) -> dict:
+    """Margin radar (M&A deal-sourcing): the companies that most OVER-perform (`direction='over'` →
+    quality acquisition targets) or UNDER-perform (`direction='under'` → turnaround / red flag) their
+    sector, on `metric` ∈ {net_margin, operating_margin, roe}. Give `sector` (plain language) or `nace`;
+    `region` optional (Wallonia/Flanders/Brussels). Returns named companies (number) + their value vs
+    the sector median. Precomputed → fast. Then vet a target with get_company.
+
+    Args:
+        sector: plain-language sector term (resolved to NACE).
+        nace: NACE code/prefix (alternative to sector).
+        metric: net_margin | operating_margin | roe.
+        direction: 'over' (out-performers) or 'under' (under-performers).
+        region: optional region/province/city; national fallback.
+        limit: max companies (default 15).
+    """
+    params: dict[str, Any] = {"metric": metric, "direction": direction, "limit": limit}
+    if sector:
+        params["sector"] = sector
+    if nace:
+        params["nace"] = nace
+    if region:
+        params["region"] = region
+    if not (sector or nace):
+        return {"error": "Provide a `sector` (plain language) or a `nace` code."}
+    d = _get("/api/sector/outliers", params)
+    return d if d else {"error": "No sector ranking available."}
+
+
 def main() -> None:
     """Console entry point — runs the MCP server over stdio."""
     mcp.run()
