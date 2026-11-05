@@ -124,6 +124,32 @@ _TABLE_ROWS = [
 _MAX_TABLE_YEARS = 6
 
 
+def _credit_limit(cl: dict | None) -> dict | None:
+    """Indicative supplier credit limit — the server's persisted figure (same as the company page), never recomputed."""
+    if not cl:
+        return None
+    if not cl.get("applicable"):
+        return {"available": False, "reason": cl.get("na_reason")}   # "we can't tell" — NOT 0 €
+    return {"available": True, "limit_30d_eur": cl.get("limit_30d"), "limit_60d_eur": cl.get("limit_60d"),
+            "accounts_year": cl.get("as_of_year"), "risk_band": cl.get("risk_band"),
+            "confidence": cl.get("confidence"), "caveats": cl.get("caveats") or None}
+
+
+_CREDIT_LIMIT_LABEL = ("INDICATIVE open-account exposure ONE supplier could carry (30 / 60-day terms), derived from "
+                       "the filed accounts and the default-risk band — not an authorised limit nor a guarantee. "
+                       "0 € = cash / prepayment only. available=false = no figure (holding, no or stale accounts), "
+                       "never read it as 0 €. Pro feature: null when the account's plan lacks it.")
+
+
+def _limit_cell(cl: dict | None) -> str:
+    if not cl:
+        return "—"
+    if not cl.get("available"):
+        return "n/a"
+    v = cl.get("limit_30d_eur")
+    return "0 (cash)" if v == 0 else _eur(v)
+
+
 def _markdown_table(headers: list[str], rows: list[list[str]]) -> str:
     head = "| " + " | ".join(headers) + " |"
     sep = "| " + " | ".join("---" for _ in headers) + " |"
@@ -268,8 +294,8 @@ def screen_companies(
         desc: True for descending (largest first), False for ascending.
         limit: number of companies to return (1–200).
 
-    Returns the matching companies with their latest-year key figures, plus the total
-    number of matches behind the limit.
+    Returns the matching companies with their latest-year key figures (and each one's indicative
+    supplier credit limit, `supplier_credit_limit`), plus the total number of matches behind the limit.
     """
     params = {
         "sector": sector, "nace": nace, "zipcode": zipcode, "region": region, "near_zip": near_zip,
@@ -279,7 +305,7 @@ def screen_companies(
         "acquirable_only": acquirable_only, "exclude_distressed": exclude_distressed,
         "min_age_years": min_age_years, "min_employees": min_employees,
         "order_by": order_by, "desc": desc, "limit": max(1, min(limit, 200)),
-        "include_all": False,
+        "include_all": False, "with_credit_limit": True,
     }
     d = _get("/api/screen", params)
     if not d:
@@ -316,16 +342,17 @@ def screen_companies(
             "ebitda_eur": r.get("ebitda"),
             "accounts_model": r.get("account_type"),
             "legal_situation": r.get("situation_label"),
+            "supplier_credit_limit": _credit_limit(r.get("credit_limit")),
             "page": _fiche_url(r["enterprise_number"]),
         }
     rows = [_row(r) for r in d.get("rows", [])]
     table = None
     if rows:
-        headers = ["#", "Company", "Nr", "City", "Yr", "EBITDA", "Net result", "Equity", "FTE"]
+        headers = ["#", "Company", "Nr", "City", "Yr", "EBITDA", "Net result", "Equity", "FTE", "Supplier 30d"]
         trows = [[
             str(i), (r["name"] or "—")[:40], r["enterprise_number"], (r["city"] or "—")[:24],
             str(r["year"] or "—"), _eur(r["ebitda_eur"]), _eur(r["net_result_eur"]),
-            _eur(r["equity_eur"]), _num(r["employees"]),
+            _eur(r["equity_eur"]), _num(r["employees"]), _limit_cell(r["supplier_credit_limit"]),
         ] for i, r in enumerate(rows, 1)]
         table = _markdown_table(headers, trows)
     return {
@@ -335,7 +362,8 @@ def screen_companies(
         "total_matches": d.get("total"),
         "ordered_by": order_by + (" desc" if desc else " asc"),
         "notes": "`table` is pre-formatted — present it directly. `total_matches` is the full "
-                 "count behind the returned sample; offer to refine or sort if it's large.",
+                 "count behind the returned sample; offer to refine or sort if it's large. "
+                 "`supplier_credit_limit`: " + _CREDIT_LIMIT_LABEL,
         "source": "NBB/BNB annual accounts (latest filed year per company)",
     }
 
@@ -350,6 +378,8 @@ def get_company(number: str) -> dict:
     margins, solvency, current ratio, ROE/ROA, DSO/DPO, headcount…), the people and
     companies connected to it (directors and shareholders), and the list of filed annual
     accounts. Every number comes from official NBB/BNB filings.
+    It also carries `supplier_credit_limit`: how much open-account credit ONE supplier could
+    indicatively leave this company (30 / 60 days) — use it for "can I deliver X € on credit?".
 
     The result includes `financials_table`: a ready-to-present Markdown table (recent years ×
     headline metrics, already formatted). Present it directly — no need to write code to parse
@@ -422,6 +452,9 @@ def get_company(number: str) -> dict:
         "financials_by_year": d.get("trend") or [],
         # present ONLY if turnover isn't filed: a sector-coefficient ESTIMATE (range + confidence)
         "estimated_turnover": estimated_turnover,
+        # indicative supplier credit limit (persisted server-side; null = not computed or not in the plan)
+        "supplier_credit_limit": ({**_credit_limit(d["credit_limit"]), "label": _CREDIT_LIMIT_LABEL}
+                                  if d.get("credit_limit") else None),
         "connections": relations,
         "filed_accounts": documents,
         "notes": "Amounts in EUR; ratios are fractions (0.41 = 41%); employees = average FTE. "
