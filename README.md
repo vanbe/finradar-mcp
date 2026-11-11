@@ -31,22 +31,22 @@ be technical: you copy a token, open Claude, paste it, and Claude sets everythin
 
 ### 2. Get your personal token
 1. Log in to **FinRadar** in your browser.
-2. Click your **name/profile** (top-right) → **🤖 AI agent (token)**.
-3. Click **Generate a token** and **copy** it (it starts with `frad_`).
+2. Open **https://app.idonis.ai/developers** (FinRadar is now **Idonis**).
+3. Click **Generate a token** and **copy** it (it starts with `idn_`; older `frad_` tokens still work).
    *It is shown only once — keep it safe, it's like a password.*
 
 ### 3. Let Claude set it up
 1. Open **Claude Code** in the `finradar-mcp` folder
    (in a terminal: `cd finradar-mcp` then `claude`; or open the folder from the Claude app).
 2. Paste this message, with your token:
-   > **Here is my FinRadar token: `frad_…` — please set everything up.**
+   > **Here is my FinRadar token: `idn_…` — please set everything up.**
 3. Claude reads the included instructions, runs the bundled setup script (it stores your
    token securely, checks it against the live data, and connects the FinRadar tools), then
    greets you. If Claude asks you to **approve the "finradar" MCP server** or to reconnect
    (`/mcp`), say yes.
 
    *Prefer doing it yourself?* From the `finradar-mcp` folder, run one command —
-   `python3 setup_finradar.py frad_YOUR_TOKEN` — and follow its output.
+   `python3 setup_finradar.py idn_YOUR_TOKEN` — and follow its output.
 
 ### 4. Start asking
 Try, in your own words:
@@ -76,7 +76,7 @@ you can also export an Excel whose formulas reproduce the figures.
 
 ## Using Claude Desktop instead of Claude Code
 
-Claude Desktop also supports MCP servers. Run `python3 setup_finradar.py frad_YOUR_TOKEN` once
+Claude Desktop also supports MCP servers. Run `python3 setup_finradar.py idn_YOUR_TOKEN` once
 (it stores your token and prints the exact launch command), then in Claude Desktop open
 **Settings → Developer → Edit config** and add a `finradar` server using that command. If that
 sounds fiddly, just use Claude Code — it's the smoother path. You can also paste the persona
@@ -89,7 +89,7 @@ from **`PERSONA.md`** into a Claude Project for the same tone.
 - Your token gives **read-only** access to public company data, **on behalf of your account**.
 - It is stored **only on your computer** (`~/.finradar/token`), never inside this project,
   never shared. This repo is public — your token must never be committed.
-- You can **revoke** a token at any time: FinRadar → profile → 🤖 AI agent → **Revoke**.
+- You can **revoke** a token at any time on https://app.idonis.ai/developers.
 - Lost or leaked token? Revoke it and generate a new one.
 
 ---
@@ -97,12 +97,12 @@ from **`PERSONA.md`** into a Claude Project for the same tone.
 ## Troubleshooting
 
 - **"Token rejected (401)"** → the token is wrong or was revoked. Generate a fresh one and
-  tell Claude *"here is my new token: frad_…"*.
+  tell Claude *"here is my new token: idn_…"*.
 - **Tools don't appear** → reconnect: in Claude Code run `/mcp` (or reopen the folder), and
   approve the "finradar" server if asked.
 - **"Python not found" (Windows)** → the `python3` that opens the Microsoft Store doesn't
   count. Install Python from <https://www.python.org/downloads/> and **tick "Add python.exe to
-  PATH"**, then re-run `py -3 setup_finradar.py frad_YOUR_TOKEN`. (Claude can do this for you —
+  PATH"**, then re-run `py -3 setup_finradar.py idn_YOUR_TOKEN`. (Claude can do this for you —
   just say *"I'm on Windows, set it up"*.)
 - **Still stuck?** Tell Claude exactly what you see — it will diagnose and fix it. Everything
   the setup does lives in one script: `setup_finradar.py`.
@@ -125,13 +125,13 @@ Desktop, et 5 minutes. Aucune compétence technique.
 puis décompressez-le (dossier `finradar-mcp`). Ou, avec git :
 `git clone https://github.com/vanbe/finradar-mcp.git`
 
-**2. Générez votre token** — connectez-vous à FinRadar → votre **profil** (en haut à droite)
-→ **🤖 Agent IA (token)** → **Générer un token** → **copiez-le** (il commence par `frad_`).
+**2. Générez votre token** — connectez-vous à Idonis (ex-FinRadar) sur **https://app.idonis.ai/developers**
+→ **Générer un token** → **copiez-le** (il commence par `idn_` ; les anciens `frad_` restent valables).
 *Il n'est affiché qu'une seule fois — gardez-le comme un mot de passe.*
 
 **3. Laissez Claude tout installer** — ouvrez **Claude Code** dans le dossier `finradar-mcp`,
 puis collez ce message avec votre token :
-> **Voici mon token FinRadar : `frad_…` — installe tout, s'il te plaît.**
+> **Voici mon token FinRadar : `idn_…` — installe tout, s'il te plaît.**
 
 Claude lit les instructions fournies, range votre token en lieu sûr, connecte les outils
 FinRadar, fait un test rapide et vous accueille. S'il demande d'**autoriser le serveur MCP
@@ -145,7 +145,7 @@ FinRadar, fait un test rapide et vous accueille. S'il demande d'**autoriser le s
 
 **Confidentialité** — le token donne un accès **en lecture seule** aux données publiques, au
 nom de votre compte ; il est stocké **uniquement sur votre ordinateur** (`~/.finradar/token`),
-jamais dans ce dépôt public. Vous pouvez le **révoquer** à tout moment depuis votre profil.
+jamais dans ce dépôt public. Vous pouvez le **révoquer** à tout moment sur https://app.idonis.ai/developers.
 
 **En cas de souci** — dites simplement à Claude ce que vous voyez (ex. « token refusé »,
 « je ne vois pas les outils »), il diagnostique et corrige.

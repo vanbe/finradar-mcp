@@ -4,7 +4,7 @@ Exposes the FinRadar financial-intelligence API (Belgian companies — KBO/BCE i
 NBB/BNB annual accounts) as Model Context Protocol tools, so a Claude agent can answer
 questions in plain language with grounded, sourced figures.
 
-Auth: a personal API token generated in the FinRadar web app (profile → "AI agent").
+Auth: a personal API token generated in the Idonis web app (https://app.idonis.ai/developers).
 The token is read from the FINRADAR_TOKEN environment variable, or from ~/.finradar/token.
 
 Every figure returned traces back to an official source: company identity from the Belgian
@@ -21,7 +21,7 @@ from typing import Any
 import httpx
 from mcp.server.fastmcp import FastMCP
 
-DEFAULT_BASE_URL = "https://finradar.lab.vanbe.be"
+DEFAULT_BASE_URL = "https://app.idonis.ai"   # FinRadar is now Idonis (old host only serves a redirect page)
 TOKEN_FILE = Path.home() / ".finradar" / "token"
 
 mcp = FastMCP("finradar")
@@ -38,7 +38,7 @@ def _token() -> str:
     if not tok:
         raise RuntimeError(
             "No FinRadar token found. Generate one in the FinRadar web app "
-            "(profile → 'AI agent'), then set FINRADAR_TOKEN or write it to ~/.finradar/token."
+            "(https://app.idonis.ai/developers), then set FINRADAR_TOKEN or write it to ~/.finradar/token."
         )
     return tok
 

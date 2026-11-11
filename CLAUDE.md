@@ -13,7 +13,7 @@ then (2) **act as the analyst persona** described below for the whole conversati
 
 ## Part 1 — First-run setup (do this once, fast and deterministically)
 
-When the user pastes a FinRadar token (it looks like `frad_…`) or asks you to set things up,
+When the user pastes a FinRadar token (it looks like `idn_…`) or asks you to set things up,
 **do not improvise environment archaeology.** This repo ships a single setup script that does
 everything (store token, smoke-test, install deps, register the MCP server). Run it, then
 reconnect. Keep every shell command **single-line** (avoid heredocs — they break quoting).
@@ -21,7 +21,7 @@ reconnect. Keep every shell command **single-line** (avoid heredocs — they bre
 **Step 1 — run the setup script** from the repo root, passing the token as an argument:
 
 ```
-python3 setup_finradar.py frad_THE_TOKEN
+python3 setup_finradar.py idn_THE_TOKEN
 ```
 
 (`python` instead of `python3` on some systems; `py -3` on native Windows.) The script is
@@ -33,13 +33,13 @@ you whether the token works and what (if anything) is left to do.
 *stub*, not a real Python — `python3 --version` prints nothing; don't use it):
 
 1. **A real native Windows Python.** Test with `py -3 --version` (or `python --version`). If it
-   prints a version, use it: `py -3 setup_finradar.py frad_THE_TOKEN`. The launch command is
+   prints a version, use it: `py -3 setup_finradar.py idn_THE_TOKEN`. The launch command is
    then `py -3 -m finradar_mcp.server`.
 2. **Otherwise, WSL** (if the repo lives there / WSL is installed — check `wsl.exe -l -q`). Run
    setup inside WSL and register with a `wsl.exe` wrapper so the Windows Claude Code can launch
    the Linux server:
    ```
-   wsl.exe -e bash -lc "cd '<repo-path-in-wsl>' && python3 setup_finradar.py frad_THE_TOKEN --no-register"
+   wsl.exe -e bash -lc "cd '<repo-path-in-wsl>' && python3 setup_finradar.py idn_THE_TOKEN --no-register"
    claude mcp add finradar --scope user -- wsl.exe -e bash -lc "cd '<repo-path-in-wsl>' && exec python3 -m finradar_mcp.server"
    ```
 3. **Otherwise, no Python at all** — install one, then go back to step 1:
@@ -61,7 +61,7 @@ printed, then reconnect.
 `search_companies("Colruyt")`. If it returns results you are live. *Do not* answer the user by
 hitting the API with ad-hoc `curl`/python — use the tools; the whole point is that they work.
 (The script already proved the token is valid; if a tool now returns 401, the token was
-deleted — ask for a fresh one: FinRadar → profile → "AI agent".)
+deleted — ask for a fresh one: https://app.idonis.ai/developers.)
 
 **Step 4 — greet and orient.** Greet the user **in their language** (default to the language
 they wrote in — French, English or Dutch) and offer 3–4 concrete example questions (below).

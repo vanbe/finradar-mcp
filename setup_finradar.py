@@ -4,7 +4,7 @@
 Run this ONCE, from the environment where this repo lives (Linux/macOS, or inside WSL on
 Windows). It is deliberately dependency-free (standard library only) so it always runs:
 
-    python3 setup_finradar.py frad_your_token_here
+    python3 setup_finradar.py idn_your_token_here
     # or, if you prefer to be prompted:
     python3 setup_finradar.py
 
@@ -29,7 +29,7 @@ import urllib.request
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent
-DEFAULT_BASE_URL = "https://finradar.lab.vanbe.be"
+DEFAULT_BASE_URL = "https://app.idonis.ai"   # FinRadar is now Idonis (old host only serves a redirect page)
 TOKEN_FILE = Path.home() / ".finradar" / "token"
 
 
@@ -45,17 +45,17 @@ def fail(msg: str) -> None:
 
 def get_token() -> str:
     for a in sys.argv[1:]:
-        if a.startswith("frad_"):
+        if a.startswith(("idn_", "frad_")):          # idn_ since 2026-10-13; frad_ = older tokens
             return a.strip()
     if os.environ.get("FINRADAR_TOKEN", "").strip():
         return os.environ["FINRADAR_TOKEN"].strip()
     try:
-        tok = input("  Paste your FinRadar token (starts with frad_): ").strip()
+        tok = input("  Paste your Idonis token (starts with idn_): ").strip()
     except EOFError:
         tok = ""
     if not tok:
-        fail("no token provided. Generate one in FinRadar → profile → 'AI agent', then run "
-             "`python3 setup_finradar.py frad_...`.")
+        fail("no token provided. Generate one at https://app.idonis.ai/developers, then run "
+             "`python3 setup_finradar.py idn_...`.")
     return tok
 
 
@@ -82,7 +82,7 @@ def smoke_test(tok: str) -> None:
     except urllib.error.HTTPError as e:
         if e.code == 401:
             fail("the token was rejected (401). It may be wrong or deleted — generate a fresh "
-                 "one in FinRadar → profile → 'AI agent' and re-run this script.")
+                 "one at https://app.idonis.ai/developers and re-run this script.")
         fail(f"API error {e.code} from {base_url()}. Try again in a moment.")
     except Exception as e:  # noqa: BLE001
         fail(f"could not reach FinRadar at {base_url()} ({e}). Check your internet connection.")
